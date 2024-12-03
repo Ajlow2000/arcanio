@@ -1,2 +1,4 @@
-# rename-track
-A utility used for renaming audio tracks from known sources to my preferred format
+# repo-manager
+
+A utility for performing a series of operations related to
+working with git repositories. 
