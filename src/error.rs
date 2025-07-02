@@ -11,6 +11,9 @@ pub enum Error {
     #[error(transparent)]
     IoError(#[from] std::io::Error),
 
+    #[error("control c")]
+    ControlC,
+
     #[error("invalid config")]
     InvalidConfig,
 
@@ -22,6 +25,7 @@ pub enum Error {
 impl Error {
     pub fn exit_code(&self) -> i32 {
         match self {
+            Error::ControlC => 130,
             Error::LoggingSetupError => 4,
             Error::InvalidConfig => 3,
             Error::IoError(_) => 2,

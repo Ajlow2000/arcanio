@@ -6,12 +6,14 @@ pub struct Cli {
     #[command(subcommand)]
     pub command: Command,
 
-    #[arg(short, long, action = ArgAction::Count, global = true)]
+    /// Enable logging with configurable levels ('-v' enables INFO level, '-vvv' enables max TRACE level)
+    #[arg(short, action = ArgAction::Count, global = true)]
     pub verbose: u8,
 
 }
 
 #[derive(Subcommand, Debug)]
 pub enum Command {
+    /// A general purpose command endpoint used for adhoc feature testing
     Test,
 }

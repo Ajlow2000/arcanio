@@ -4,25 +4,30 @@ mod cli;
 pub use error::Result;
 pub use error::Error;
 use tokio::signal;
-use tokio::sync::mpsc;
 
 #[tokio::main]
 async fn main() {
     color_eyre::install().unwrap();
 
-    let (shutdown_sender, mut shutdown_receiver) = mpsc::unbounded_channel::<()>();
-
-    let result = cli::main().await;
-    
-    if let Err(e) = result {
-        eprintln!("{:?}", e);
-        std::process::exit(e.exit_code());
-    }
-    
-    let _ = shutdown_sender.send(());
+    let cli_handle = tokio::spawn(async move {
+        cli::main().await
+    });
 
     tokio::select! {
-        _ = signal::ctrl_c() => { println!("\nExiting..." )},
-        _ = shutdown_receiver.recv() => {},
+        result = cli_handle => {
+            match result {
+                Ok(cli_result) => {
+                    if let Err(e) = cli_result {
+                        eprintln!("CLI error: {:?}", e);
+                        std::process::exit(e.exit_code());
+                    }
+                }
+                Err(e) => eprintln!("Task join error: {:?}", e),
+            }
+        },
+        _ = signal::ctrl_c() => { 
+            println!("\nExiting..." );
+            std::process::exit(Error::ControlC.exit_code());
+        },
     }
 }

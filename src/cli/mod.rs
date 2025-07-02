@@ -6,3 +6,6 @@ pub use logging::*;
 
 mod structure;
 pub use structure::*;
+
+mod commands;
+pub use commands::*;

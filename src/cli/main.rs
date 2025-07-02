@@ -1,17 +1,14 @@
-use arcanio_lib::music::normalize_filename;
 use clap::Parser as _;
 
-use crate::{cli::{setup_logging, Cli}, Result};
+use crate::{cli::{handle_test, setup_logging, Cli, Command}, Result};
 
 pub async fn main() -> Result<()> {
-    println!("In cli main");
-
     let cli = Cli::parse();
 
     setup_logging(cli.verbose)?;
 
     match cli.command {
-        crate::cli::Command::Test => {normalize_filename().await},
+        Command::Test => { handle_test().await? },
     }
     
     Ok(())
