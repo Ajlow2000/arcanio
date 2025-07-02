@@ -13,13 +13,18 @@ pub enum Error {
 
     #[error("invalid config")]
     InvalidConfig,
+
+    #[error("unable to setup logging")]
+    LoggingSetupError,
+
 }
 
 impl Error {
     pub fn exit_code(&self) -> i32 {
         match self {
-            Error::InvalidConfig => 2,
-            Error::IoError(_) => 3,
+            Error::LoggingSetupError => 4,
+            Error::InvalidConfig => 3,
+            Error::IoError(_) => 2,
             Error::Eyre(report) => {
                 // Check if the root cause is a custom error
                 if let Some(custom_err) = report.root_cause().downcast_ref::<Error>() {
