@@ -1,29 +1,40 @@
 {
-  description = "A basic gomod2nix flake";
+    inputs = {
+        nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+        cargo2nix.url = "github:cargo2nix/cargo2nix/release-0.11.0";
+    };
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-  inputs.flake-utils.url = "github:numtide/flake-utils";
-  inputs.gomod2nix.url = "github:nix-community/gomod2nix";
-  inputs.gomod2nix.inputs.nixpkgs.follows = "nixpkgs";
-  inputs.gomod2nix.inputs.flake-utils.follows = "flake-utils";
-
-  outputs = { self, nixpkgs, flake-utils, gomod2nix }:
-    (flake-utils.lib.eachDefaultSystem
-      (system:
+    outputs = inputs: with inputs;
         let
-          pkgs = nixpkgs.legacyPackages.${system};
+           forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.platforms.unix;
+           nixpkgsFor = forAllSystems (system: import nixpkgs {
+                inherit system;
+                config = { };
+                overlays = [ cargo2nix.overlays.default ]; # create nixpkgs that contains rustBuilder from cargo2nix overlay
+            });
 
-          # The current default sdk for macOS fails to compile go projects, so we use a newer one for now.
-          # This has no effect on other platforms.
-          callPackage = pkgs.darwin.apple_sdk_11_0.callPackage or pkgs.callPackage;
-        in
-        {
-          packages.default = callPackage ./. {
-            inherit (gomod2nix.legacyPackages.${system}) buildGoApplication;
-          };
-          devShells.default = callPackage ./shell.nix {
-            inherit (gomod2nix.legacyPackages.${system}) mkGoEnv gomod2nix;
-          };
-        })
-    );
+        in {
+            packages = forAllSystems (system:
+                let pkgs = nixpkgsFor."${system}"; in {
+                    default = pkgs.rustPlatform.buildRustPackage {
+                        pname = "archivist";
+                        version = "0.0.0";
+                        src = ./.;
+                        cargoHash = "sha256-zZZ3oARtlGsEQRKlItNF7y0e6fEUi9N9KCPLZBcoHh4=";
+                        useFetchCargoVendor = true;
+                    };
+                }
+            );
+            devShells = forAllSystems (system:
+                let pkgs = nixpkgsFor."${system}"; in {
+                    default = pkgs.mkShell {
+                        packages = with pkgs; [
+                            rustc
+                            cargo
+                            rust-analyzer
+                        ];
+                    };
+                }
+            );
+       };
 }
