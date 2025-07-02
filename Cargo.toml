@@ -1,0 +1,15 @@
+[package]
+name = "arcanio"
+version = "0.0.0"
+edition = "2021"
+
+[lib]
+name = "arcanio_lib"
+path = "src/lib.rs"
+
+[[bin]]
+name = "arcanio"
+path = "src/main.rs"
+
+
+[dependencies]
