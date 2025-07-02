@@ -17,7 +17,7 @@
             packages = forAllSystems (system:
                 let pkgs = nixpkgsFor."${system}"; in {
                     default = pkgs.rustPlatform.buildRustPackage {
-                        pname = "archivist";
+                        pname = "arcanio";
                         version = "0.0.0";
                         src = ./.;
                         cargoHash = "sha256-zZZ3oARtlGsEQRKlItNF7y0e6fEUi9N9KCPLZBcoHh4=";
