@@ -18,8 +18,10 @@ async fn main() -> Result<()> {
             match result {
                 Ok(cli_result) => {
                     if let Err(e) = cli_result {
-                        eprintln!("CLI error: {:?}", e);
-                        std::process::exit(e.exit_code());
+                        let exit_code = e.exit_code();
+                        let wrapped = color_eyre::eyre::eyre!(e);
+                        eprintln!("Error callstack: {:?}", wrapped);
+                        std::process::exit(exit_code);
                     }
                 }
                 Err(e) => eprintln!("Task join error: {:?}", e),
