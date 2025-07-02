@@ -5,7 +5,7 @@ edition = "2021"
 
 [lib]
 name = "arcanio_lib"
-path = "src/lib.rs"
+path = "src/lib/mod.rs"
 
 [[bin]]
 name = "arcanio"
@@ -13,3 +13,6 @@ path = "src/main.rs"
 
 
 [dependencies]
+color-eyre = "0.6.5"
+thiserror = "2.0.12"
+tokio = { version = "1.45.1", features = ["full"] }
