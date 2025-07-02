@@ -6,8 +6,8 @@ pub use error::Error;
 use tokio::signal;
 
 #[tokio::main]
-async fn main() {
-    color_eyre::install().unwrap();
+async fn main() -> Result<()> {
+    color_eyre::install().map_err(|_| {Error::PanicHandlerSetupError})?;
 
     let cli_handle = tokio::spawn(async move {
         cli::main().await
@@ -30,4 +30,6 @@ async fn main() {
             std::process::exit(Error::ControlC.exit_code());
         },
     }
+    
+    Ok(())
 }

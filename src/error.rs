@@ -17,6 +17,9 @@ pub enum Error {
     #[error("invalid config")]
     InvalidConfig,
 
+    #[error("unable to setup panic handler")]
+    PanicHandlerSetupError,
+
     #[error("unable to setup logging")]
     LoggingSetupError,
 
@@ -25,6 +28,7 @@ pub enum Error {
 impl Error {
     pub fn exit_code(&self) -> i32 {
         match self {
+            Error::PanicHandlerSetupError => 205,
             Error::ControlC => 130,
             Error::LoggingSetupError => 4,
             Error::InvalidConfig => 3,
