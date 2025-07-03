@@ -1,6 +1,6 @@
 use clap::Parser as _;
 
-use crate::{cli::{handle_test, setup_logging, Cli, Command}, Result};
+use crate::{cli::{handle_temp, setup_logging, Cli, Command}, Result};
 
 pub async fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -8,7 +8,7 @@ pub async fn main() -> Result<()> {
     setup_logging(cli.verbose)?;
 
     match cli.command {
-        Command::Test => { handle_test().await? },
+        Command::Temp => { handle_temp().await? },
     }
     
     Ok(())

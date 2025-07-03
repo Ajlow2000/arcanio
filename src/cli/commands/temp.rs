@@ -1,8 +1,8 @@
 use arcanio_lib::music::normalize_filename;
 
-use crate::{Error, Result};
+use crate::Result;
 
-pub async fn handle_test() -> Result<()> {
+pub async fn handle_temp() -> Result<()> {
     normalize_filename().await?;
     Ok(())
 }

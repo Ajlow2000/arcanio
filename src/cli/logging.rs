@@ -3,9 +3,10 @@ use tracing_subscriber::filter::LevelFilter;
 
 pub fn setup_logging(verbosity: u8) -> Result<()> {
     let level = match verbosity {
-        0 => LevelFilter::WARN,
-        1 => LevelFilter::INFO,
-        2 => LevelFilter::DEBUG,
+        0 => LevelFilter::OFF,
+        1 => LevelFilter::WARN,
+        2 => LevelFilter::INFO,
+        3 => LevelFilter::DEBUG,
         _ => LevelFilter::TRACE,
     };
 

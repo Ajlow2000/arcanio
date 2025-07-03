@@ -6,14 +6,23 @@ pub struct Cli {
     #[command(subcommand)]
     pub command: Command,
 
-    /// Enable logging with configurable levels ('-v' enables INFO level, '-vvv' enables max TRACE level)
-    #[arg(short, action = ArgAction::Count, global = true)]
+    /// Enable logging with configurable levels
+    ///
+    /// The configurable levels are mapped to the following values.
+    /// When running cli commands and a verbosity flag is omitted, 
+    /// logging is disabled.
+    ///     '-v'    ERROR and WARN level
+    ///     '-vv'   INFO level
+    ///     '-vvv'  DEBUG level
+    ///     '-vvvv' TRACE level
+    #[arg(short, action = ArgAction::Count, global = true, verbatim_doc_comment)]
     pub verbose: u8,
 
 }
 
 #[derive(Subcommand, Debug)]
 pub enum Command {
+
     /// A general purpose command endpoint used for adhoc feature testing
-    Test,
+    Temp,
 }
