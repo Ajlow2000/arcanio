@@ -12,6 +12,8 @@ pub async fn main() -> Result<()> {
         config::load_config(cli.verbose)?
     };
 
+    // TODO some cli flags wont exist in config.  And some config values wont exist in cli.  So I gotta figure something out about that
+
     setup_logging(&config.logging)?;
 
     match cli.command {
