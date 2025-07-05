@@ -3,7 +3,7 @@
         nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     };
 
-    outputs = inputs: with inputs;
+    outputs = inputs@{ self, ... }: with inputs;
         let
            forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.platforms.unix;
            nixpkgsFor = forAllSystems (system: import nixpkgs {
@@ -26,7 +26,7 @@
             checks = forAllSystems (system:
                 let pkgs = nixpkgsFor."${system}"; in {
                     default = pkgs.rustPlatform.buildRustPackage {
-                        pname = cargoToml.package.name;
+                        pname = cargoToml.package.name + "-tests";
                         version = cargoToml.package.version;
                         src = ./.;
                         cargoHash = "sha256-Iyw35FJrkMyggJsj0q/oQ3oMwMBYOfq04Df62aiFUgs";
@@ -39,6 +39,12 @@
                     };
                 }
             );
+            apps = forAllSystems (system: {
+                default = {
+                    type = "app";
+                    program = "${self.packages.${system}.default}/bin/${cargoToml.package.name}";
+                };
+            });
             devShells = forAllSystems (system:
                 let pkgs = nixpkgsFor."${system}"; in {
                     default = pkgs.mkShell {
