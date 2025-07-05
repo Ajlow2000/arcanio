@@ -1,6 +1,7 @@
 use tracing::{debug, error, info, trace, warn};
-use crate::{Error, Result};
+use crate::Result;
 
+#[tracing::instrument]
 pub async fn normalize_filename() -> Result<()> {
     for _i in 0..10 {
         if _i == 3 {

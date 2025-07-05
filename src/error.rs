@@ -23,6 +23,21 @@ pub enum Error {
     #[error("unable to setup logging")]
     LoggingSetupError,
 
+    #[error("config load error: {0}")]
+    ConfigLoadError(String),
+
+    #[error("config parse error: {0}")]
+    ConfigParseError(String),
+
+    #[error("config validation error: {0}")]
+    ConfigValidationError(String),
+
+    #[error("config file not found: {0}")]
+    ConfigFileNotFoundError(String),
+
+    #[error("config serialization error: {0}")]
+    ConfigSerializationError(String),
+
     #[error(transparent)]
     LibError(#[from] arcanio_lib::Error),
 
@@ -35,6 +50,11 @@ impl Error {
             Error::ControlC => 130,
             Error::LoggingSetupError => 4,
             Error::InvalidConfig => 3,
+            Error::ConfigLoadError(_) => 6,
+            Error::ConfigParseError(_) => 7,
+            Error::ConfigValidationError(_) => 8,
+            Error::ConfigFileNotFoundError(_) => 9,
+            Error::ConfigSerializationError(_) => 10,
             Error::LibError(_) => 5,
             Error::IoError(_) => 2,
             Error::Eyre(report) => {

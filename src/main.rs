@@ -1,5 +1,6 @@
 mod error;
 mod cli;
+mod config;
 
 pub use error::Result;
 pub use error::Error;
@@ -20,7 +21,7 @@ async fn main() -> Result<()> {
                     if let Err(e) = cli_result {
                         let exit_code = e.exit_code();
                         let wrapped = color_eyre::eyre::eyre!(e);
-                        eprintln!("Error callstack: {:?}", wrapped);
+                        eprintln!("\nError callstack: {:?}", wrapped);
                         std::process::exit(exit_code);
                     }
                 }
