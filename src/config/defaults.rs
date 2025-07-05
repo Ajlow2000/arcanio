@@ -91,3 +91,27 @@ impl LoggingConfig {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::config::AppConfig;
+
+    #[test]
+    fn test_default_config() {
+        let config = AppConfig::default();
+        assert_eq!(config.logging.level, "off");
+    }
+
+    #[test]
+    fn test_config_merge() {
+        let mut base_config = AppConfig::default();
+        let mut override_config = AppConfig::default();
+        override_config.logging.level = "debug".to_string();
+
+        base_config.merge_with(override_config);
+
+        assert_eq!(base_config.logging.level, "debug");
+        // Other fields should remain default
+        assert_eq!(base_config.logging.format, "compact");
+    }
+
+}

@@ -14,6 +14,7 @@ async fn main() -> Result<()> {
         cli::main().await
     });
 
+
     tokio::select! {
         result = cli_handle => {
             match result {

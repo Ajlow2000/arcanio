@@ -1,7 +1,6 @@
 mod builder;
 mod defaults;
 mod paths;
-mod tests;
 
 pub use builder::ConfigBuilder;
 pub use defaults::*;
