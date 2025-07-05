@@ -49,12 +49,14 @@ impl Default for LoggingConfig {
 }
 
 impl AppConfig {
+    #[cfg(test)]
     pub fn merge_with(&mut self, other: AppConfig) {
         self.logging.merge_with(other.logging);
     }
 }
 
 impl LoggingConfig {
+    #[cfg(test)]
     pub fn merge_with(&mut self, other: LoggingConfig) {
         if other.level != LoggingConfig::default().level {
             self.level = other.level;
