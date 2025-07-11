@@ -94,28 +94,6 @@ impl ConfigBuilder {
         self
     }
 
-    pub fn load_from_cli_args(mut self, verbose: u8) -> Self {
-        let mut builder = Config::builder().add_source(self.config.clone());
-        
-        // Override with CLI verbosity if present
-        if verbose > 0 {
-            let level = match verbose {
-                1 => "warn",
-                2 => "info", 
-                3 => "debug",
-                _ => "trace",
-            };
-            
-            builder = builder.set_override("logging.level", level)
-                .unwrap_or_else(|_| Config::builder().add_source(self.config.clone()));
-        }
-        
-        if let Ok(config) = builder.build() {
-            self.config = config;
-        }
-        
-        self
-    }
 
     pub fn build(self) -> Result<AppConfig> {
         self.config
@@ -183,16 +161,6 @@ show_file = false
         std::env::remove_var(env!("CARGO_PKG_NAME").to_string() + "_LOGGING_LEVEL");
     }
 
-    #[test]
-    fn test_config_builder_cli_args() {
-        let config = ConfigBuilder::new()
-            .load_defaults()
-            .load_from_cli_args(2)
-            .build()
-            .unwrap();
-
-        assert_eq!(config.logging.level, "info");
-    }
 
     #[test]
     fn test_config_file_not_found() {

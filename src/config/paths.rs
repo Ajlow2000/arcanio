@@ -16,19 +16,4 @@ impl ConfigPaths {
 
         paths
     }
-
-    // pub fn get_user_config_dir() -> Option<PathBuf> {
-    //     dirs::config_dir().map(|dir| dir.join(env!("CARGO_PKG_NAME")))
-    // }
-    //
-    // pub fn ensure_user_config_dir() -> crate::Result<PathBuf> {
-    //     let config_dir = Self::get_user_config_dir()
-    //         .ok_or_else(|| crate::Error::ConfigLoadError("Unable to determine user config directory".to_string()))?;
-    //     
-    //     if !config_dir.exists() {
-    //         std::fs::create_dir_all(&config_dir)?;
-    //     }
-    //     
-    //     Ok(config_dir)
-    // }
 }

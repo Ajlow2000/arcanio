@@ -5,14 +5,7 @@ use crate::{cli::{handle_config, handle_temp, setup_logging, Cli, Command}, conf
 pub async fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    // Load configuration
-    let config = if let Some(config_file) = &cli.config {
-        config::load_config_with_override(Some(config_file), cli.verbose)?
-    } else {
-        config::load_config(cli.verbose)?
-    };
-
-    // TODO some cli flags wont exist in config.  And some config values wont exist in cli.  So I gotta figure something out about that
+    let config = config::load_config_with_cli_override(&cli)?;
 
     setup_logging(&config.logging)?;
 

@@ -48,48 +48,6 @@ impl Default for LoggingConfig {
     }
 }
 
-impl AppConfig {
-    #[cfg(test)]
-    pub fn merge_with(&mut self, other: AppConfig) {
-        self.logging.merge_with(other.logging);
-    }
-}
-
-impl LoggingConfig {
-    #[cfg(test)]
-    pub fn merge_with(&mut self, other: LoggingConfig) {
-        if other.level != LoggingConfig::default().level {
-            self.level = other.level;
-        }
-        if other.format != LoggingConfig::default().format {
-            self.format = other.format;
-        }
-        if other.show_file != LoggingConfig::default().show_file {
-            self.show_file = other.show_file;
-        }
-        if other.show_line_numbers != LoggingConfig::default().show_line_numbers {
-            self.show_line_numbers = other.show_line_numbers;
-        }
-        if other.show_thread_ids != LoggingConfig::default().show_thread_ids {
-            self.show_thread_ids = other.show_thread_ids;
-        }
-        if other.show_target != LoggingConfig::default().show_target {
-            self.show_target = other.show_target;
-        }
-        if other.file_enabled != LoggingConfig::default().file_enabled {
-            self.file_enabled = other.file_enabled;
-        }
-        if other.file_path != LoggingConfig::default().file_path {
-            self.file_path = other.file_path;
-        }
-        if other.file_rotation != LoggingConfig::default().file_rotation {
-            self.file_rotation = other.file_rotation;
-        }
-        if other.file_level != LoggingConfig::default().file_level {
-            self.file_level = other.file_level;
-        }
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -100,18 +58,4 @@ mod tests {
         let config = AppConfig::default();
         assert_eq!(config.logging.level, "off");
     }
-
-    #[test]
-    fn test_config_merge() {
-        let mut base_config = AppConfig::default();
-        let mut override_config = AppConfig::default();
-        override_config.logging.level = "debug".to_string();
-
-        base_config.merge_with(override_config);
-
-        assert_eq!(base_config.logging.level, "debug");
-        // Other fields should remain default
-        assert_eq!(base_config.logging.format, "compact");
-    }
-
 }
