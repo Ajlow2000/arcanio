@@ -49,7 +49,7 @@
 //! ```
 
 use crate::cli::Cli;
-use crate::config::defaults::{AppConfig, LoggingConfig};
+use crate::config::defaults::{AppConfig, LoggingConfig, ConsoleLoggingConfig, FileLoggingConfig};
 
 /// A trait for merging configuration values from different sources
 pub trait Merge<T> {
@@ -110,9 +110,19 @@ impl Merge<AppConfig> for AppConfig {
     }
 }
 
-impl_merge!(LoggingConfig, 
-    level, format, show_file, show_line_numbers, show_thread_ids, 
-    show_target, file_enabled, file_path, file_rotation, file_level
+impl Merge<LoggingConfig> for LoggingConfig {
+    fn merge_with(&mut self, other: LoggingConfig, defaults: &Self) {
+        self.console.merge_with(other.console, &defaults.console);
+        self.file.merge_with(other.file, &defaults.file);
+    }
+}
+
+impl_merge!(ConsoleLoggingConfig, 
+    level, format, show_file, show_line_numbers, show_thread_ids, show_target
+);
+
+impl_merge!(FileLoggingConfig, 
+    enabled, level, path, rotation
 );
 
 /// Convert CLI verbosity levels to log level strings
@@ -130,9 +140,9 @@ impl FromCli<Cli> for AppConfig {
     fn from_cli(cli: &Cli) -> Self {
         let mut config = AppConfig::default();
         
-        // Only override logging level if verbosity is specified
+        // Only override console logging level if verbosity is specified
         if cli.verbose > 0 {
-            config.logging.level = verbosity_to_log_level(cli.verbose);
+            config.logging.console.level = verbosity_to_log_level(cli.verbose);
         }
         
         config
@@ -148,13 +158,13 @@ mod tests {
     fn test_merge_with_defaults() {
         let mut base = AppConfig::default();
         let mut override_config = AppConfig::default();
-        override_config.logging.level = "debug".to_string();
+        override_config.logging.console.level = "debug".to_string();
         
         let defaults = AppConfig::default();
         base.merge_with(override_config, &defaults);
         
-        assert_eq!(base.logging.level, "debug");
-        assert_eq!(base.logging.format, "compact"); // unchanged
+        assert_eq!(base.logging.console.level, "debug");
+        assert_eq!(base.logging.console.format, "compact"); // unchanged
     }
 
     #[test]
@@ -166,7 +176,7 @@ mod tests {
         };
         
         let config = AppConfig::from_cli(&cli);
-        assert_eq!(config.logging.level, "off");
+        assert_eq!(config.logging.console.level, "off");
     }
 
     #[test]
@@ -178,7 +188,7 @@ mod tests {
         };
         
         let config = AppConfig::from_cli(&cli);
-        assert_eq!(config.logging.level, "info");
+        assert_eq!(config.logging.console.level, "info");
     }
 
     #[test]

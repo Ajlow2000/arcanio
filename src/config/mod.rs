@@ -2,10 +2,12 @@ mod builder;
 mod defaults;
 mod merge;
 mod paths;
+mod validation;
 
 pub use builder::ConfigBuilder;
 pub use defaults::*;
 pub use merge::*;
+pub use validation::*;
 
 use crate::Result;
 use crate::cli::Cli;
@@ -31,6 +33,10 @@ pub fn load_config_with_cli_override(cli: &Cli) -> Result<AppConfig> {
     let cli_config = AppConfig::from_cli(cli);
     let defaults = AppConfig::default();
     config.merge_with(cli_config, &defaults);
+    
+    // Validate the final merged config
+    config.validate()
+        .map_err(|validation_errors| crate::Error::ConfigValidationError(format!("Final config validation failed: {}", validation_errors)))?;
     
     Ok(config)
 }

@@ -2,7 +2,7 @@ use config::{Config, Environment, File, FileFormat};
 use std::fmt::Debug;
 use std::path::Path;
 
-use crate::config::{defaults::AppConfig, paths::ConfigPaths};
+use crate::config::{defaults::AppConfig, paths::ConfigPaths, validation::Validate};
 use crate::Result;
 
 #[derive(Debug)]
@@ -30,12 +30,16 @@ impl ConfigBuilder {
             Err(_) => {
                 // If Config::try_from fails, manually set the defaults
                 let builder = Config::builder()
-                    .set_default("logging.level", defaults.logging.level).unwrap_or_else(|_| Config::builder())
-                    .set_default("logging.format", defaults.logging.format).unwrap_or_else(|_| Config::builder())
-                    .set_default("logging.show_file", defaults.logging.show_file).unwrap_or_else(|_| Config::builder())
-                    .set_default("logging.show_line_numbers", defaults.logging.show_line_numbers).unwrap_or_else(|_| Config::builder())
-                    .set_default("logging.show_thread_ids", defaults.logging.show_thread_ids).unwrap_or_else(|_| Config::builder())
-                    .set_default("logging.show_target", defaults.logging.show_target).unwrap_or_else(|_| Config::builder());
+                    .set_default("logging.console.level", defaults.logging.console.level).unwrap_or_else(|_| Config::builder())
+                    .set_default("logging.console.format", defaults.logging.console.format).unwrap_or_else(|_| Config::builder())
+                    .set_default("logging.console.show_file", defaults.logging.console.show_file).unwrap_or_else(|_| Config::builder())
+                    .set_default("logging.console.show_line_numbers", defaults.logging.console.show_line_numbers).unwrap_or_else(|_| Config::builder())
+                    .set_default("logging.console.show_thread_ids", defaults.logging.console.show_thread_ids).unwrap_or_else(|_| Config::builder())
+                    .set_default("logging.console.show_target", defaults.logging.console.show_target).unwrap_or_else(|_| Config::builder())
+                    .set_default("logging.file.enabled", defaults.logging.file.enabled).unwrap_or_else(|_| Config::builder())
+                    .set_default("logging.file.level", defaults.logging.file.level).unwrap_or_else(|_| Config::builder())
+                    .set_default("logging.file.path", defaults.logging.file.path).unwrap_or_else(|_| Config::builder())
+                    .set_default("logging.file.rotation", defaults.logging.file.rotation).unwrap_or_else(|_| Config::builder());
                 
                 self.config = builder.build().unwrap_or_default();
             }
@@ -96,9 +100,15 @@ impl ConfigBuilder {
 
 
     pub fn build(self) -> Result<AppConfig> {
-        self.config
+        let config: AppConfig = self.config
             .try_deserialize()
-            .map_err(|e| crate::Error::ConfigValidationError(format!("Config validation failed: {}", e)))
+            .map_err(|e| crate::Error::ConfigValidationError(format!("Config deserialization failed: {}", e)))?;
+        
+        // Validate the config after loading
+        config.validate()
+            .map_err(|validation_errors| crate::Error::ConfigValidationError(format!("Config validation failed: {}", validation_errors)))?;
+        
+        Ok(config)
     }
 }
 
@@ -117,7 +127,7 @@ mod tests {
             .build()
             .unwrap();
 
-        assert_eq!(config.logging.level, "off");
+        assert_eq!(config.logging.console.level, "off");
     }
 
     #[test]
@@ -126,7 +136,7 @@ mod tests {
         let config_path = dir.path().join("test_config.toml");
 
         let config_content = r#"
-[logging]
+[logging.console]
 level = "debug"
 format = "json"
 show_file = false
@@ -141,14 +151,14 @@ show_file = false
             .build()
             .unwrap();
 
-        assert_eq!(config.logging.level, "debug");
-        assert_eq!(config.logging.format, "json");
-        assert!(!config.logging.show_file);
+        assert_eq!(config.logging.console.level, "debug");
+        assert_eq!(config.logging.console.format, "json");
+        assert!(!config.logging.console.show_file);
     }
 
     #[test]
     fn test_config_builder_from_env() {
-        std::env::set_var(env!("CARGO_PKG_NAME").to_string() + "_LOGGING_LEVEL", "info");
+        std::env::set_var(env!("CARGO_PKG_NAME").to_string() + "_LOGGING_CONSOLE_LEVEL", "info");
 
         let config = ConfigBuilder::new()
             .load_defaults()
@@ -156,9 +166,9 @@ show_file = false
             .build()
             .unwrap();
 
-        assert_eq!(config.logging.level, "info");
+        assert_eq!(config.logging.console.level, "info");
 
-        std::env::remove_var(env!("CARGO_PKG_NAME").to_string() + "_LOGGING_LEVEL");
+        std::env::remove_var(env!("CARGO_PKG_NAME").to_string() + "_LOGGING_CONSOLE_LEVEL");
     }
 
 
@@ -177,7 +187,7 @@ show_file = false
         let config_path = dir.path().join("invalid_config.toml");
 
         let invalid_content = r#"
-[logging
+[logging.console
 level = "debug"
 "#;
 

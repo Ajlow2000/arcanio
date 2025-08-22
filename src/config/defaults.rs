@@ -6,17 +6,28 @@ pub struct AppConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct LoggingConfig {
+    pub console: ConsoleLoggingConfig,
+    pub file: FileLoggingConfig,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConsoleLoggingConfig {
     pub level: String,
     pub format: String,
     pub show_file: bool,
     pub show_line_numbers: bool,
     pub show_thread_ids: bool,
     pub show_target: bool,
-    pub file_enabled: bool,
-    pub file_path: String,
-    pub file_rotation: String,
-    pub file_level: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileLoggingConfig {
+    pub enabled: bool,
+    pub level: String,
+    pub path: String,
+    pub rotation: String,
 }
 
 impl Default for AppConfig {
@@ -29,10 +40,15 @@ impl Default for AppConfig {
 
 impl Default for LoggingConfig {
     fn default() -> Self {
-        let data_dir = dirs::data_dir()
-            .unwrap_or_else(|| std::path::PathBuf::from("."))
-            .join(env!("CARGO_PKG_NAME"));
-        
+        Self {
+            console: ConsoleLoggingConfig::default(),
+            file: FileLoggingConfig::default(),
+        }
+    }
+}
+
+impl Default for ConsoleLoggingConfig {
+    fn default() -> Self {
         Self {
             level: "off".to_string(),
             format: "compact".to_string(),
@@ -40,10 +56,21 @@ impl Default for LoggingConfig {
             show_line_numbers: true,
             show_thread_ids: true,
             show_target: true,
-            file_enabled: true,
-            file_path: data_dir.to_string_lossy().to_string(),
-            file_rotation: "daily".to_string(),
-            file_level: "debug".to_string(),
+        }
+    }
+}
+
+impl Default for FileLoggingConfig {
+    fn default() -> Self {
+        let data_dir = dirs::data_dir()
+            .unwrap_or_else(|| std::path::PathBuf::from("."))
+            .join(env!("CARGO_PKG_NAME"));
+        
+        Self {
+            enabled: false,
+            level: "debug".to_string(),
+            path: data_dir.to_string_lossy().to_string(),
+            rotation: "daily".to_string(),
         }
     }
 }
@@ -56,6 +83,7 @@ mod tests {
     #[test]
     fn test_default_config() {
         let config = AppConfig::default();
-        assert_eq!(config.logging.level, "off");
+        assert_eq!(config.logging.console.level, "off");
+        assert_eq!(config.logging.file.enabled, false);
     }
 }
