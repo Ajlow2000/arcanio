@@ -31,6 +31,13 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Command {
+    /// Apply normalization to the specified files
+    #[command(arg_required_else_help=true)]
+    Normalize {
+        /// Files or directories to normalize. Supports wildcards.
+        paths: Vec<String>,
+    },
+
     /// Configuration management commands
     Config {
         #[command(subcommand)]
