@@ -19,7 +19,7 @@
                         pname = cargoToml.package.name;
                         version = cargoToml.package.version;
                         src = ./.;
-                        cargoHash = "sha256-Iyw35FJrkMyggJsj0q/oQ3oMwMBYOfq04Df62aiFUgs";
+                        cargoHash = "sha256-pGcjNBJtEkpLMQzJ3NRDjGiHAsL6V9TJN/suQJinhH0=";
                     };
                 }
             );
@@ -29,7 +29,7 @@
                         pname = cargoToml.package.name + "-tests";
                         version = cargoToml.package.version;
                         src = ./.;
-                        cargoHash = "sha256-Iyw35FJrkMyggJsj0q/oQ3oMwMBYOfq04Df62aiFUgs";
+                        cargoHash = "sha256-pGcjNBJtEkpLMQzJ3NRDjGiHAsL6V9TJN/suQJinhH0=";
                         checkPhase = ''
                             cargo test
                         '';
@@ -52,6 +52,7 @@
                             rustc
                             cargo
                             rust-analyzer
+                            ffmpeg-full
                         ];
                     };
                 }
