@@ -20,7 +20,7 @@ impl File {
     }
 }
 
-fn normalize_path(path: &PathBuf) -> Result<PathBuf>{
+fn normalize_path(path: &Path) -> Result<PathBuf>{
     let mut normalized_path = PathBuf::new();
 
     if let Some(super_group) = detect_super_group(path) {
@@ -41,17 +41,17 @@ fn normalize_path(path: &PathBuf) -> Result<PathBuf>{
     Ok(normalized_path)
 }
 
-fn detect_extension(path: &PathBuf) -> Result<String> {
+fn detect_extension(path: &Path) -> Result<String> {
     Ok(detect_filetype(path)?.get_extension())
 }
 
-fn detect_filetype(path: &PathBuf) -> Result<SupportedFiletype> {
+fn detect_filetype(path: &Path) -> Result<SupportedFiletype> {
     // if path has an extension, use it as a starting place to validate
     // else, iterate through all supported filetypes to find the correct one
     todo!()
 }
 
-fn detect_name_prefix(path: &PathBuf) -> Option<&str> {
+fn detect_name_prefix(path: &Path) -> Option<&str> {
     // track position if music
     // episode number if tv
     // series number if movie
@@ -59,20 +59,20 @@ fn detect_name_prefix(path: &PathBuf) -> Option<&str> {
     todo!()
 }
 
-fn detect_name(path: &PathBuf) -> Result<&str> {
+fn detect_name(path: &Path) -> Result<&str> {
     // track title if music
     // episode name if tv
     // title if movie
     todo!()
 }
 
-fn detect_sub_group(path: &PathBuf) -> Option<&str> {
+fn detect_sub_group(path: &Path) -> Option<&str> {
     // album name if music
     // season identifier if tv
     todo!()
 }
 
-fn detect_super_group(path: &PathBuf) -> Option<&str> {
+fn detect_super_group(path: &Path) -> Option<&str> {
     // primary artist if music
     // series name if tv
     // series name if movie
@@ -111,7 +111,7 @@ impl SupportedFiletype {
         }
     }
 
-    fn validation_command(self, file_path: &std::path::Path) -> Result<tokio::process::Command>{
+    fn validation_command(self, file_path: &Path) -> Result<tokio::process::Command>{
         let mut ffprobe_validate_args: Vec<String> = vec![
             "-v".to_string(), 
             "quiet".to_string(), 
@@ -176,6 +176,11 @@ mod tests {
     use super::*;
     use std::fs;
     use tempfile::TempDir;
+
+    #[test]
+    fn test_detect_extension() {
+        todo!()
+    }
 
     #[test]
     fn test_glob_expand_filters_supported_extensions() {
