@@ -1,61 +1,124 @@
 {
-    inputs = {
-        nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs = {
+    nixpkgs = {
+      type = "github";
+      owner = "nixos";
+      repo = "nixpkgs";
     };
+  };
 
-    outputs = inputs@{ self, ... }: with inputs;
+  outputs =
+    { self, nixpkgs }:
+    let
+      supportedSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
+      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+      pkgsFor = system: nixpkgs.legacyPackages.${system};
+
+      # Parse pname and version from build.zig
+      buildZigContent = builtins.readFile ./build.zig;
+      pnameMatch = builtins.match ".*const pname = \"([^\"]*)\";.*" buildZigContent;
+      versionMatch = builtins.match ".*const version = \"([^\"]*)\";.*" buildZigContent;
+      pname = if pnameMatch != null then builtins.head pnameMatch else "arcanio";
+      version = if versionMatch != null then builtins.head versionMatch else "0.0.0";
+    in
+    {
+      packages = forAllSystems (
+        system:
         let
-           forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.platforms.unix;
-           nixpkgsFor = forAllSystems (system: import nixpkgs {
-                inherit system;
-                config = { };
-            });
-            cargoToml = nixpkgs.lib.importTOML ./Cargo.toml;
+          pkgs = pkgsFor system;
+        in
+        {
+          default = pkgs.stdenv.mkDerivation {
+            inherit pname version;
+            src = ./.;
 
-        in {
-            packages = forAllSystems (system:
-                let pkgs = nixpkgsFor."${system}"; in {
-                    default = pkgs.rustPlatform.buildRustPackage {
-                        pname = cargoToml.package.name;
-                        version = cargoToml.package.version;
-                        src = ./.;
-                        cargoHash = "sha256-pGcjNBJtEkpLMQzJ3NRDjGiHAsL6V9TJN/suQJinhH0=";
-                    };
-                }
-            );
-            checks = forAllSystems (system:
-                let pkgs = nixpkgsFor."${system}"; in {
-                    default = pkgs.rustPlatform.buildRustPackage {
-                        pname = cargoToml.package.name + "-tests";
-                        version = cargoToml.package.version;
-                        src = ./.;
-                        cargoHash = "sha256-pGcjNBJtEkpLMQzJ3NRDjGiHAsL6V9TJN/suQJinhH0=";
-                        checkPhase = ''
-                            cargo test
-                        '';
-                        installPhase = ''
-                            touch $out
-                        '';
-                    };
-                }
-            );
-            apps = forAllSystems (system: {
-                default = {
-                    type = "app";
-                    program = "${self.packages.${system}.default}/bin/${cargoToml.package.name}";
-                };
-            });
-            devShells = forAllSystems (system:
-                let pkgs = nixpkgsFor."${system}"; in {
-                    default = pkgs.mkShell {
-                        packages = with pkgs; [
-                            rustc
-                            cargo
-                            rust-analyzer
-                            ffmpeg-full
-                        ];
-                    };
-                }
-            );
-       };
+            nativeBuildInputs = with pkgs; [
+              zig
+            ];
+
+            buildPhase = ''
+              runHook preBuild
+              export ZIG_GLOBAL_CACHE_DIR=$TMPDIR/zig-cache
+              zig build -Doptimize=ReleaseSafe
+              runHook postBuild
+            '';
+
+            installPhase = ''
+              runHook preInstall
+              mkdir -p $out/bin
+              cp zig-out/bin/${pname} $out/bin/${pname}
+              runHook postInstall
+            '';
+
+            meta = with pkgs.lib; {
+              description = "A media management tool";
+              license = licenses.gpl3;
+              platforms = platforms.all;
+            };
+          };
+        }
+      );
+
+      checks = forAllSystems (
+        system:
+        let
+          pkgs = pkgsFor system;
+        in
+        {
+          tests = pkgs.stdenv.mkDerivation {
+            inherit pname version;
+            src = ./.;
+
+            nativeBuildInputs = with pkgs; [
+              zig
+            ];
+
+            buildPhase = ''
+              runHook preBuild
+              export ZIG_GLOBAL_CACHE_DIR=$TMPDIR/zig-cache
+              zig build test
+              runHook postBuild
+            '';
+
+            installPhase = ''
+              runHook preInstall
+              mkdir -p $out
+              echo "Tests passed" > $out/test-results
+              runHook postInstall
+            '';
+          };
+        }
+      );
+
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = pkgsFor system;
+        in
+        {
+          default = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              nixpkgs-fmt
+              zig
+              zls
+            ];
+
+            shellHook = ''
+              echo "DSA development environment (zig $(zig version))"
+              echo "Available commands:"
+              echo "  zig build        - Build the project"
+              echo "  zig build run    - Build and run"
+              echo "  zig build test   - Run tests"
+            '';
+          };
+        }
+      );
+
+      devShell = forAllSystems (system: self.devShells.${system}.default);
+    };
 }
