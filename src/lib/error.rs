@@ -10,6 +10,9 @@ pub enum Error {
 
     #[error("invalid file path")]
     InvalidFilePath,
+
+    #[error("unsupported file type")]
+    UnsupportedFiletype,
     
     #[error("glob pattern error: {0}")]
     GlobPattern(#[from] glob::PatternError),

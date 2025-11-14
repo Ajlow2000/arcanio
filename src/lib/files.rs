@@ -9,8 +9,10 @@ pub struct File {
     normalized_path: PathBuf,
 }
 
-impl File {
-    pub fn try_new(path: PathBuf) -> Result<Self> {
+impl TryFrom<PathBuf> for File {
+    type Error = Error;
+
+    fn try_from(path: PathBuf) -> Result<Self> {
         let ft = detect_filetype(&path)?;
         Ok(Self { 
             filetype: ft.clone(),
@@ -46,9 +48,11 @@ fn detect_extension(path: &Path) -> Result<String> {
 }
 
 fn detect_filetype(path: &Path) -> Result<SupportedFiletype> {
-    // if path has an extension, use it as a starting place to validate
-    // else, iterate through all supported filetypes to find the correct one
-    todo!()
+    let ext = path.extension()
+        .and_then(|s| s.to_str())
+        .ok_or(Error::InvalidFilePath)?;
+    
+    SupportedFiletype::try_from(ext)
 }
 
 fn detect_name_prefix(path: &Path) -> Option<&str> {
@@ -97,10 +101,22 @@ impl From<SupportedFiletype> for SupportedMediaType {
     }
 }
 
-#[derive(strum::EnumIter, Clone)]
+#[derive(strum::EnumIter, Clone, Debug)]
 pub enum SupportedFiletype {
     Flac,
     M4a,
+}
+
+impl TryFrom<&str> for SupportedFiletype {
+    type Error = Error;
+    
+    fn try_from(ext: &str) -> Result<Self> {
+        match ext.to_lowercase().as_str() {
+            "flac" => Ok(SupportedFiletype::Flac),
+            "m4a" => Ok(SupportedFiletype::M4a),
+            _ => Err(Error::UnsupportedFiletype),
+        }
+    }
 }
 
 impl SupportedFiletype {
@@ -178,8 +194,11 @@ mod tests {
     use tempfile::TempDir;
 
     #[test]
+    #[cfg(feature="integration-tests")]
     fn test_detect_extension() {
-        todo!()
+        let path = Path::new("./tests/fixtures/03_grlGvng.flac");
+        let result = detect_extension(path).unwrap();
+        assert_eq!(result, ".m4a");
     }
 
     #[test]

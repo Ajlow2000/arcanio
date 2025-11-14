@@ -11,6 +11,10 @@ path = "src/lib/mod.rs"
 name = "arcanio"
 path = "src/main.rs"
 
+[features]
+default = []
+integration-tests = []
+
 
 [dependencies]
 clap = { version = "4.5.40", features = ["derive", "wrap_help"] }
