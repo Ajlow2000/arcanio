@@ -13,47 +13,17 @@
             cargoToml = nixpkgs.lib.importTOML ./Cargo.toml;
 
         in {
-            packages = forAllSystems (system:
-                let pkgs = nixpkgsFor."${system}"; in {
-                    default = pkgs.rustPlatform.buildRustPackage {
-                        pname = cargoToml.package.name;
-                        version = cargoToml.package.version;
-                        src = ./.;
-                        cargoHash = "sha256-pGcjNBJtEkpLMQzJ3NRDjGiHAsL6V9TJN/suQJinhH0=";
-                    };
-                }
-            );
-            checks = forAllSystems (system:
-                let pkgs = nixpkgsFor."${system}"; in {
-                    default = pkgs.rustPlatform.buildRustPackage {
-                        pname = cargoToml.package.name + "-tests";
-                        version = cargoToml.package.version;
-                        src = ./.;
-                        cargoHash = "sha256-pGcjNBJtEkpLMQzJ3NRDjGiHAsL6V9TJN/suQJinhH0=";
-                        checkPhase = ''
-                            cargo test
-                        '';
-                        installPhase = ''
-                            touch $out
-                        '';
-                    };
-                }
-            );
-            apps = forAllSystems (system: {
-                default = {
-                    type = "app";
-                    program = "${self.packages.${system}.default}/bin/${cargoToml.package.name}";
-                };
-            });
             devShells = forAllSystems (system:
                 let pkgs = nixpkgsFor."${system}"; in {
                     default = pkgs.mkShell {
                         packages = with pkgs; [
-                            rustc
-                            cargo
-                            rust-analyzer
-                            ffmpeg-full
+                            alire
+                            gnat
                         ];
+
+                        shellHook = ''
+                            alr --non-interactive toolchain --select gnat_external
+                        '';
                     };
                 }
             );

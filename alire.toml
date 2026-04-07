@@ -1,0 +1,10 @@
+name = "arcanio"
+description = "A CLI interface for interacting with local media library"
+version = "0.1.0-dev"
+
+authors = ["Alec Lowry"]
+maintainers = ["Alec Lowry <junkmail00310@gmail.com>"]
+maintainers-logins = ["ajlow2000"]
+licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
+website = ""
+tags = ["music", "cli"]

@@ -3,3 +3,7 @@
 
 arcanio.toml
 example.toml
+/obj/
+/bin/
+/alire/
+/config/
